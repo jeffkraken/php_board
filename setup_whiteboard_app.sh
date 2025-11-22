@@ -10,6 +10,9 @@ yum -y install httpd php php-sqlite3 php-pdo php-mbstring sqlite
 # For CentOS 7 fallback (SQLite support)
 yum -y install php-pdo php-sqlite php-json || true
 
+# policy utils support
+yum -y install policycoreutils-python-utils || yum -y install policycoreutils-python
+
 systemctl enable httpd
 systemctl start httpd
 
@@ -238,8 +241,18 @@ chmod -R 755 /var/www/html
 
 chmod 664 /var/www/html/db.sqlite
 
+echo "=== Applying SELinux context for writable DB === "
+semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/html(/.*)?"
+restorecon -Rv /var/www/html
+
+echo "== Enabling SELinux == "
+setenforce 1 || true
+
 echo "=== Restarting Apache ==="
 systemctl restart httpd
 
+# Get the public IP automatically
+PUBLIC_IP=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address)
+
 echo "=== Done! Web app deployed ==="
-echo "Visit: http://YOUR_SERVER_IP/register.php"
+echo "Visit: http://$PUBLIC_IP/register.php"
