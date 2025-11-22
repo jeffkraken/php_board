@@ -14,7 +14,7 @@ systemctl enable httpd
 systemctl start httpd
 
 echo "=== Creating app directory ==="
-APP_DIR="/var/www/html/whiteboard"
+APP_DIR="/var/www/html"
 mkdir -p $APP_DIR
 
 echo "=== Writing application files ==="
@@ -29,7 +29,7 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
-$db = new SQLite3('db.sqlite');
+$db = new SQLite3(__DIR__ . '/db.sqlite');
 
 $messages = $db->query("
     SELECT m.id, m.content, m.created_at, u.username
@@ -75,7 +75,7 @@ EOF
 cat > $APP_DIR/login.php <<'EOF'
 <?php
 session_start();
-$db = new SQLite3('db.sqlite');
+$db = new SQLite3(__DIR__ . '/db.sqlite');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -116,7 +116,7 @@ EOF
 cat > $APP_DIR/register.php <<'EOF'
 <?php
 session_start();
-$db = new SQLite3('db.sqlite');
+$db = new SQLite3(__DIR__ . '/db.sqlite');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -167,7 +167,7 @@ session_start();
 if (!isset($_SESSION['user_id'])) {
     exit("Not logged in.");
 }
-$db = new SQLite3('db.sqlite');
+$db = new SQLite3(__DIR__ . '/db.sqlite');
 $content = trim($_POST['content']);
 
 if ($content !== "") {
@@ -188,7 +188,7 @@ session_start();
 if ($_SESSION['role'] !== 'admin') {
     exit("Not authorized.");
 }
-$db = new SQLite3('db.sqlite');
+$db = new SQLite3(__DIR__ . '/db.sqlite');
 
 $id = intval($_GET['id']);
 $stmt = $db->prepare("DELETE FROM messages WHERE id = ?");
@@ -202,7 +202,7 @@ EOF
 ############################################
 cat > $APP_DIR/init_db.php <<'EOF'
 <?php
-$db = new SQLite3('db.sqlite');
+$db = new SQLite3(__DIR__ . '/db.sqlite');
 
 // Users table
 $db->exec("
@@ -233,12 +233,13 @@ cd $APP_DIR
 php init_db.php
 
 echo "=== Setting permissions ==="
-chown -R apache:apache $APP_DIR
-chmod -R 755 $APP_DIR
-chmod -R 777 $APP_DIR/db.sqlite || true
+chown -R apache:apache /var/www/html
+chmod -R 755 /var/www/html
+
+chmod 664 /var/www/html/db.sqlite
 
 echo "=== Restarting Apache ==="
 systemctl restart httpd
 
 echo "=== Done! Web app deployed ==="
-echo "Visit: http://YOUR_SERVER_IP/whiteboard/register.php"
+echo "Visit: http://YOUR_SERVER_IP/register.php"
