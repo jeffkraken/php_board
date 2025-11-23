@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  whiteboard:
+    build: .
+    container_name: whiteboard_app
+    ports:
+      - "80:80"
+    volumes:
+      - dbdata:/var/www/html/db.sqlite
+    restart: unless-stopped
+
+volumes:
+  dbdata:
