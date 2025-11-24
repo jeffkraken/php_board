@@ -22,7 +22,7 @@ WORKDIR /var/www/html
 # Write application files directly inside the Docker image
 
 ### index.php ###
-RUN bash -c 'cat > index.php << "EOF"
+RUN cat > index.php << 'EOF'
 <?php
 session_start();
 if (!isset($_SESSION["user_id"])) {
@@ -66,10 +66,10 @@ $messages = $db->query("
 
 </body>
 </html>
-EOF'
+EOF
 
 ### login.php ###
-RUN bash -c 'cat > login.php << "EOF"
+RUN cat > login.php << 'EOF'
 <?php
 session_start();
 $db = new SQLite3(__DIR__ . "/db.sqlite");
@@ -105,10 +105,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <?= isset($error) ? $error : "" ?>
 </body>
 </html>
-EOF'
+EOF
 
 ### register.php ###
-RUN bash -c 'cat > register.php << "EOF"
+RUN cat > register.php << 'EOF'
 <?php
 session_start();
 $db = new SQLite3(__DIR__ . "/db.sqlite");
@@ -141,18 +141,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <?= isset($error) ? $error : "" ?>
 </body>
 </html>
-EOF'
+EOF
 
 ### logout.php ####
-RUN bash -c 'cat > logout.php << "EOF"
+RUN cat > logout.php << 'EOF'
 <?php
 session_start();
 session_destroy();
 header("Location: login.php");
-EOF'
+EOF
 
 ### post_message.php ####
-RUN bash -c 'cat > post_message.php << "EOF"
+RUN cat > post_message.php << 'EOF'
 <?php
 session_start();
 if (!isset($_SESSION["user_id"])) {
@@ -168,10 +168,10 @@ if ($content !== "") {
     $stmt->execute();
 }
 header("Location: index.php");
-EOF'
+EOF
 
 ### delete_message.php ###
-RUN bash -c 'cat > delete_message.php << "EOF"
+RUN cat > delete_message.php << 'EOF'
 <?php
 session_start();
 if ($_SESSION["role"] !== "admin") {
@@ -184,10 +184,10 @@ $stmt = $db->prepare("DELETE FROM messages WHERE id = ?");
 $stmt->bindValue(1, $id);
 $stmt->execute();
 header("Location: index.php");
-EOF'
+EOF
 
 ### init_db.php ###
-RUN bash -c 'cat > init_db.php << "EOF"
+RUN cat > init_db.php << 'EOF'
 <?php
 $db = new SQLite3(__DIR__ . "/db.sqlite");
 
@@ -196,7 +196,7 @@ $db->exec("
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT \"user\"
+        role TEXT NOT NULL DEFAULT 'user'
     )
 ");
 
@@ -211,7 +211,7 @@ $db->exec("
 ");
 
 echo "Database initialized\n";
-EOF'
+EOF
 
 # Initialize the database during image build
 RUN php /var/www/html/init_db.php
@@ -224,3 +224,4 @@ EXPOSE 80
 
 # Start Apache in foreground
 CMD ["apache2ctl", "-D", "FOREGROUND"]
+
