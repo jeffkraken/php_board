@@ -12,14 +12,16 @@ RUN apt-get update && apt-get install -y \
     sqlite3 \
     && apt-get clean
 
-# Enable Apache rewrite just in case
+# Enable Apache rewrite
 RUN a2enmod rewrite
 
 # Create application directory
-RUN mkdir -p /var/www/html
+RUN mkdir -p /var/www/html/data
 WORKDIR /var/www/html
 
-# Write application files directly inside the Docker image
+##############################################
+# PHP application files
+##############################################
 
 ### index.php ###
 RUN cat > index.php << 'EOF'
@@ -29,7 +31,7 @@ if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit;
 }
-$db = new SQLite3(__DIR__ . "/db.sqlite");
+$db = new SQLite3(__DIR__ . "/data/db.sqlite");
 $messages = $db->query("
     SELECT m.id, m.content, m.created_at, u.username
     FROM messages m
@@ -72,7 +74,7 @@ EOF
 RUN cat > login.php << 'EOF'
 <?php
 session_start();
-$db = new SQLite3(__DIR__ . "/db.sqlite");
+$db = new SQLite3(__DIR__ . "/data/db.sqlite");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = trim($_POST["username"]);
@@ -111,7 +113,7 @@ EOF
 RUN cat > register.php << 'EOF'
 <?php
 session_start();
-$db = new SQLite3(__DIR__ . "/db.sqlite");
+$db = new SQLite3(__DIR__ . "/data/db.sqlite");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = trim($_POST["username"]);
@@ -143,7 +145,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </html>
 EOF
 
-### logout.php ####
+### logout.php ###
 RUN cat > logout.php << 'EOF'
 <?php
 session_start();
@@ -151,14 +153,14 @@ session_destroy();
 header("Location: login.php");
 EOF
 
-### post_message.php ####
+### post_message.php ###
 RUN cat > post_message.php << 'EOF'
 <?php
 session_start();
 if (!isset($_SESSION["user_id"])) {
     exit("Not logged in.");
 }
-$db = new SQLite3(__DIR__ . "/db.sqlite");
+$db = new SQLite3(__DIR__ . "/data/db.sqlite");
 $content = trim($_POST["content"]);
 
 if ($content !== "") {
@@ -177,11 +179,11 @@ session_start();
 if ($_SESSION["role"] !== "admin") {
     exit("Not authorized.");
 }
-$db = new SQLite3(__DIR__ . "/db.sqlite");
+$db = new SQLite3(__DIR__ . "/data/db.sqlite");
 
 $id = intval($_GET["id"]);
 $stmt = $db->prepare("DELETE FROM messages WHERE id = ?");
-$stmt->bindValue(1, $id);
+stmt->bindValue(1, $id);
 $stmt->execute();
 header("Location: index.php");
 EOF
@@ -189,7 +191,7 @@ EOF
 ### init_db.php ###
 RUN cat > init_db.php << 'EOF'
 <?php
-$db = new SQLite3(__DIR__ . "/db.sqlite");
+$db = new SQLite3(__DIR__ . "/data/db.sqlite");
 
 $db->exec("
     CREATE TABLE IF NOT EXISTS users (
@@ -213,15 +215,13 @@ $db->exec("
 echo "Database initialized\n";
 EOF
 
-# Initialize the database during image build
+# Initialize DB during image build
 RUN php /var/www/html/init_db.php
 
-# Permissions for Apache
+# Permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
 EXPOSE 80
 
-# Start Apache in foreground
 CMD ["apache2ctl", "-D", "FOREGROUND"]
-
