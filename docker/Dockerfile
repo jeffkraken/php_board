@@ -19,10 +19,7 @@ RUN a2enmod rewrite
 RUN mkdir -p /var/www/html/data
 WORKDIR /var/www/html
 
-##############################################
 # PHP application files
-##############################################
-
 ### index.php ###
 RUN cat > index.php << 'EOF'
 <?php
@@ -225,3 +222,4 @@ RUN chown -R www-data:www-data /var/www/html \
 EXPOSE 80
 
 CMD ["apache2ctl", "-D", "FOREGROUND"]
+
