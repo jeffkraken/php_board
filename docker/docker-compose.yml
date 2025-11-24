@@ -7,8 +7,9 @@ services:
     ports:
       - "80:80"
     volumes:
-      - dbdata:/var/www/html/db.sqlite
+      - dbdata:/var/www/html/data
     restart: unless-stopped
 
 volumes:
+
   dbdata:
