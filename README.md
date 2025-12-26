@@ -41,7 +41,7 @@ The included script:
 ### Run it with:
 sudo bash setup_whiteboard_app.sh
 
-(If you are building this inside a container instead of on DigitalOcean, use the `docker` directory or the `for_inside_a_centos_container.sh` script)
+(If you are building this inside a container instead of on DigitalOcean, use the `docker` directory or the `for_inside_a_X_container.sh` script (where X is your distro))
 
 ### After installation, visit:
 
