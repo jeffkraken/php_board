@@ -41,6 +41,8 @@ The included script:
 ### Run it with:
 sudo bash setup_whiteboard_app.sh
 
+(If you are building this inside a container instead of on DigitalOcean, use the `docker` directory or the `inside_container.sh` script)
+
 ### After installation, visit:
 
 http://YOUR_SERVER_IP/whiteboard/register.php
